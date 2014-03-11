@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "name": "Person",
+  "properties": {
+    "id": {
+      "type": "number"
+    },
+    "name": {
+      "type": "string"
+    },
+    "birthday": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "knows_json": {
+      "type": "boolean"
+    },
+    "favorite_things": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string"
+        },
+        "physical_constant": {
+          "type": "number"
+        }
+      }
+    }
+  }
+} 
+
