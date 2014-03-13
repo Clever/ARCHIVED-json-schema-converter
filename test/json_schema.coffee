@@ -3,8 +3,8 @@ _ = require 'underscore'
 _.mixin require 'underscore.deep'
 {Schema} = require 'mongoose'
 {inspect} = require 'util'
-json_schema = require '../lib/json_schema'
-custom_types = require '../lib/custom_types'
+json_schema = require '../src/json_schema'
+custom_types = require '../src/custom_types'
 
 describe 'json_schema', ->
   describe 'mongoose schema conversion', ->

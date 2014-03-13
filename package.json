@@ -25,7 +25,10 @@
     "coffee-errors": "~0.8.6"
   },
   "scripts": {
+    "build":        "coffee --bare --compile --output lib/ src/*.coffee",
+    "prepublish":   "coffee --bare --compile --output lib/ src/*.coffee",
+    "postpublish":  "rm -r lib",
     "test": "make test"
   },
-  "main": "index"
+  "main": "lib/json_schema"
 }
