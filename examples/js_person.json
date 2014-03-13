@@ -2,7 +2,7 @@
   "type": "object",
   "name": "Person",
   "properties": {
-    "id": {
+    "emp_id": {
       "type": "number"
     },
     "name": {
