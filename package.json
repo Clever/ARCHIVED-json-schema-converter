@@ -2,15 +2,15 @@
   "name": "json-schema-converter",
   "version": "0.0.1",
   "description": "A library to help validate JSON Schemas and convert between any other type of schema",
-  "keywords": ["json_schema", "convert", "json", "mongo", "mongoose"]
+  "keywords": ["json_schema", "convert", "json", "mongo", "mongoose"],
   "homepage": "https://github.com/Clever/json-schema-converter",
   "repository": {
     "url": "https://github.com/Clever/json-schema-converter",
     "type": "git"
-  }
+  },
   "bugs": {
-    "url": "https://github.com/Clever/json-schema-converter/issues",
-  }
+    "url": "https://github.com/Clever/json-schema-converter/issues"
+  },
   "private": false,
   "license": "MIT",
   "dependencies": {
@@ -22,13 +22,15 @@
   },
   "devDependencies": {
     "mocha": "~1.8.2",
-    "coffee-errors": "~0.8.6"
+    "coffee-errors": "~0.8.6",
+    "coffee-coverage": "~0.3.0"
   },
   "scripts": {
     "build":        "coffee --bare --compile --output lib/ src/*.coffee",
     "prepublish":   "coffee --bare --compile --output lib/ src/*.coffee",
     "postpublish":  "rm -r lib",
-    "test": "make test"
+    "test": "make test",
+    "test-cov": "make test-cov"
   },
   "main": "lib/json_schema"
 }
