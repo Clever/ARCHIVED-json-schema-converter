@@ -10,7 +10,7 @@ all: test
 test: $(TESTS)
 
 $(TESTS):
-	DEBUG=* NODE_ENV=test node_modules/mocha/bin/mocha -r coffee-errors --ignore-leaks --bail --timeout 180000 --compilers coffee:coffee-script test/$@.coffee
+	DEBUG=* NODE_ENV=test node_modules/mocha/bin/mocha -r coffee-errors --bail --compilers coffee:coffee-script test/$@.coffee
 
 clean:
 	rm -rf lib
