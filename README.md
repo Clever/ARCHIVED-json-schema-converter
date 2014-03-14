@@ -19,11 +19,13 @@ what the client expects.
 ## Usage
 
 ```coffee
+{inspect} = require 'util'
 json_schema = require 'json-schema-converter'
 your_schema = require 'your_schema.json'
 
-# to make sure
-json_schema.is_valid your_schema
+# to make sure - validate returns a structure that describes the error
+unless json_schema.is_valid your_schema
+  throw new Error "JSON Schema is invalid, error is: #{inspect json_schema.validate(your_schema)}"
 
 # the actual conversion
 your_mongoose_schema = json_schema.to_mongoose_schema your_schema
