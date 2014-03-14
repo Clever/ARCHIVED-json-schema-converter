@@ -1,6 +1,6 @@
 # usage:
 # `make` or `make test` runs all the tests
-# `make successful_run` runs just that test
+# `make <test basename, aka json_schema>` runs just that test
 .PHONY: test clean test-cov
 
 TESTS=$(shell cd test && ls *.coffee | sed s/\.coffee$$//)

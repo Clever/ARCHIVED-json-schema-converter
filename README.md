@@ -1,6 +1,6 @@
 # JSON Schema Converter
 
-A translation and validation library between JSON Schema and any other schema.
+A translation and validation library between (JSON Schema)[http://json-schema.org/] and any other schema.
 
 Don't get locked into your database schema forever- make sure you can always
 use the latest, <del>most buggy</del> most trendy database with minimal work.
@@ -8,6 +8,9 @@ use the latest, <del>most buggy</del> most trendy database with minimal work.
 With the JSON Schema converter, you can also validate your schemas. No
 matter what db client you're using, you can be confident a schema matches
 what the client expects.
+
+Currently supported:
+- (mongoose schema)[http://mongoosejs.com/]
 
 ## Installation
 
@@ -29,9 +32,10 @@ your_mongoose_schema = json_schema.to_mongoose_schema your_schema
 your_mongoose_object = new mongoose.Schema your_mongoose_schema
 
 # and you're on your way...
+# want to convert back? See the examples!
 ```
 
-See [the examples)['./examples'] for usage.
+See (the examples)['./examples'] for usage.
 
 
 ## Future Path
