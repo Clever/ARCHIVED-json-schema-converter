@@ -28,6 +28,7 @@
   "scripts": {
     "build":        "coffee --bare --compile --output lib/ src/*.coffee",
     "prepublish":   "coffee --bare --compile --output lib/ src/*.coffee",
+    "install":   "coffee --bare --compile --output lib/ src/*.coffee",
     "postpublish":  "rm -r lib",
     "test": "make test",
     "test-cov": "make test-cov"
