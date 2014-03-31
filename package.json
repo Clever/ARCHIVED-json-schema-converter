@@ -14,6 +14,7 @@
   "private": false,
   "license": "MIT",
   "dependencies": {
+    "coffee-script": "~1.6.2",
     "underscore": "~1.4.4",
     "underscore.deep": "~0.0.2",
     "mongoose": "~3.6.18",
@@ -21,17 +22,12 @@
   },
   "devDependencies": {
     "mocha": "~1.8.2",
-    "coffee-script": "~1.6.2",
     "coffee-errors": "~0.8.6",
     "coffee-coverage": "~0.3.0"
   },
   "scripts": {
-    "build":        "./node_modules/.bin/coffee --bare --compile --output lib/ src/*.coffee",
-    "prepublish":   "./node_modules/.bin/coffee --bare --compile --output lib/ src/*.coffee",
-    "install":   "./node_modules/.bin/coffee --bare --compile --output lib/ src/*.coffee",
-    "postpublish":  "rm -r lib",
     "test": "make test",
     "test-cov": "make test-cov"
   },
-  "main": "lib/json_schema"
+  "main": "index"
 }
