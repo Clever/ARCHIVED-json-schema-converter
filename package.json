@@ -26,9 +26,9 @@
     "coffee-coverage": "~0.3.0"
   },
   "scripts": {
-    "build":        "coffee --bare --compile --output lib/ src/*.coffee",
-    "prepublish":   "coffee --bare --compile --output lib/ src/*.coffee",
-    "install":   "coffee --bare --compile --output lib/ src/*.coffee",
+    "build":        "./node_modules/coffee-script/bin/coffee --bare --compile --output lib/ src/*.coffee",
+    "prepublish":   "./node_modules/coffee-script/bin/coffee --bare --compile --output lib/ src/*.coffee",
+    "install":   "./node_modules/coffee-script/bin/coffee --bare --compile --output lib/ src/*.coffee",
     "postpublish":  "rm -r lib",
     "test": "make test",
     "test-cov": "make test-cov"
