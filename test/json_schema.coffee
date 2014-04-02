@@ -6,6 +6,11 @@ _.mixin require 'underscore.deep'
 json_schema = require '../src/json_schema'
 custom_types = require '../src/custom_types'
 
+assert.deepEqual = do ->
+  orig_deepEqual = assert.deepEqual
+  (actual, expected) ->
+    orig_deepEqual actual, expected, "#{inspect actual, depth: null}\n!=\n#{inspect expected, depth: null}"
+
 describe 'json_schema', ->
   describe 'mongoose schema conversion', ->
     describe 'invalid json', ->
@@ -47,6 +52,7 @@ describe 'json_schema', ->
 
     describe 'symmetric tests', ->
       _.each [
+        # Non-object schemas
         json: { type: 'string' },  mongoose: String
       ,
         json: { type: 'boolean' }, mongoose: Boolean
@@ -57,6 +63,7 @@ describe 'json_schema', ->
       ,
         json: { $ref: '#/definitions/objectid' },  mongoose: Schema.Types.ObjectId
       ,
+        # Simple objects
         json:
           type: 'object'
           properties: {}
@@ -80,6 +87,7 @@ describe 'json_schema', ->
           birthday: Date
           oid: Schema.Types.ObjectId
       ,
+        # Objects with nested fields
         json:
           type: 'object'
           properties:
@@ -91,6 +99,33 @@ describe 'json_schema', ->
         mongoose:
           name:
             first: String
+            last: String
+      ,
+        # Objects with required fields
+        json:
+          type: 'object'
+          properties:
+            name: type: 'string'
+            email: type: 'string'
+            age: type: 'number'
+          required: ['name', 'age']
+        mongoose:
+          name: type: String, required: true
+          email: String
+          age: type: Number, required: true
+      ,
+        json:
+          type: 'object'
+          properties:
+            name:
+              type: 'object'
+              properties:
+                first: type: 'string'
+                last: type: 'string'
+              required: ['first']
+        mongoose:
+          name:
+            first: type: String, required: true
             last: String
       ], ({json, mongoose}) ->
         ###
@@ -122,6 +157,24 @@ describe 'json_schema', ->
           type: 'object'
           properties:
             age: type: 'number'
+      ,
+        # Mongoose doesn't have a way to specify if a field that contains
+        # nested fields is required or not. So this case is weird...
+        json:
+          type: 'object'
+          properties:
+            name:
+              type: 'object'
+              properties: {}
+          required: ['name']
+        mongoose:
+          name: {}
+        json_back:
+          type: 'object'
+          properties:
+            name:
+              type: 'object'
+              properties: {}
     ], ({json, mongoose, json_back}) ->
       json.definitions = custom_types.objectid.definition
       json_back.definitions = custom_types.objectid.definition
