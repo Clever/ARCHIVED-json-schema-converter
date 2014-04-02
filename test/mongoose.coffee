@@ -127,3 +127,41 @@ describe 'mongoose schema conversion:', ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
       it ".from_mongoose converts #{inspect mongoose}", ->
         assert.deepEqual json_schema.from_mongoose_schema(mongoose), json_back
+
+  describe '.spec_from_mongoose_schema', ->
+    _.each [
+      spec: name: String
+      expected: null # same as spec
+    ,
+      spec: name: { type: String, default: 'Pluto' }
+      expected: name: String
+    ,
+      spec: name: String, age: Number
+      expected: null # same as spec
+    ,
+      spec:
+        name:
+          first: String
+          last: String
+        age: Number
+      expected: null # same as spec
+    ,
+      spec: name: first: { type: String, default: 'Pluto' }
+      expected: name: first: String
+    ,
+      spec: tags: [String]
+      expected: null # same as spec
+    ,
+      spec: comments: [{ body: String }]
+      expected: null # same as spec
+    ,
+      spec: sister: Schema.Types.ObjectId
+      expected: null # same as spec
+    ,
+      spec: sister: { type: Schema.Types.ObjectId, ref: 'Person' }
+      expected: sister: Schema.Types.ObjectId
+    ], ({spec, expected}) ->
+      expected ?= spec
+      it "extracts spec from schema #{inspect spec}", ->
+        assert.deepEqual json_schema.spec_from_mongoose_schema(new Schema spec),
+          _.extend expected, _id: Schema.Types.ObjectId
