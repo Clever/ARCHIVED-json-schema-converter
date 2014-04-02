@@ -23,3 +23,10 @@ json_schema_movie = jsc.from_mongoose_schema mongoose_movie
 console.log "JSON Schema movie: #{inspect json_schema_movie}"
 console.log "Valid? #{jsc.is_valid json_schema_movie}"
 
+# If you have a Mongoose schema but you don't have access to the spec object
+# that was used to create it, you can extract it using the
+# spec_from_mongoose_schema helper. This is useful because from_mongoose_schema
+# takes a spec object, not an actual Mongoose schema.
+console.log "Some mongoose schema, dont know where it was created: #{inspect mongoose_person_schema}"
+json_schema_person = jsc.from_mongoose_schema jsc.spec_from_mongoose_schema mongoose_person_schema
+console.log "JSON schema: #{inspect json_schema_person}"
