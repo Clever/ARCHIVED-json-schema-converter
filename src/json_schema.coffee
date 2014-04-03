@@ -79,7 +79,7 @@ module.exports =
           _.extend
             type: 'object'
             properties: _.mapValues mongoose_fragment, convert
-            unless _.isEmpty required then {required} else {}
+            if _.isEmpty required then {} else {required}
         else
           throw new Error "Unsupported mongoose schema type #{mongoose_fragment}"
 
