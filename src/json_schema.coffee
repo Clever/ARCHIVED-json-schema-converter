@@ -36,7 +36,16 @@ module.exports =
         when json_schema.type of type_string_to_mongoose_type
           type_string_to_mongoose_type[json_schema.type]
         when json_schema.type is 'object'
-          _.mapValues json_schema.properties, convert
+          converted = _.mapValues json_schema.properties, convert
+          if json_schema.required?
+            _.mapValues converted, (subschema, key) ->
+              if key in json_schema.required and not _.isPlainObject subschema
+                type: subschema
+                required: true
+              else
+                subschema
+          else
+            converted
         else
           throw new Error "Unsupported JSON schema type #{json_schema.type}"
 
@@ -63,9 +72,14 @@ module.exports =
           $ref: custom_types.objectid.ref
         when mongoose_fragment.name of mongoose_type_to_type_string
           type: mongoose_type_to_type_string[mongoose_fragment.name]
-        when _.isObject mongoose_fragment
-          type: 'object'
-          properties: _.mapValues mongoose_fragment, convert
+        when mongoose_fragment.type?
+          convert mongoose_fragment.type
+        when _.isPlainObject mongoose_fragment
+          required = _.keys _.filterValues mongoose_fragment, (subfragment) -> subfragment.required
+          _.extend
+            type: 'object'
+            properties: _.mapValues mongoose_fragment, convert
+            if _.isEmpty required then {} else {required}
         else
           throw new Error "Unsupported mongoose schema type #{mongoose_fragment}"
 
@@ -84,6 +98,8 @@ module.exports =
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
+        when tree.type? and tree.required?
+          _.pick tree, ['type', 'required']
         when tree.type?
           tree.type
         when _.isPlainObject tree
