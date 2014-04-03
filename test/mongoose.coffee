@@ -58,14 +58,11 @@ describe 'mongoose schema conversion:', ->
     ,
       json: { type: 'string', format: 'date-time' },  mongoose: Date
     ,
+      json: { type: 'object' },  mongoose: Schema.Types.Mixed
+    ,
       json: { $ref: '#/definitions/objectid' },  mongoose: Schema.Types.ObjectId
     ,
       # Simple objects
-      json:
-        type: 'object'
-        properties: {}
-      mongoose: {}
-    ,
       json:
         type: 'object'
         properties: email: type: 'string'
@@ -155,6 +152,13 @@ describe 'mongoose schema conversion:', ->
           properties:
             age: type: 'number'
       ,
+        json:
+          type: 'object'
+          properties: {}
+        mongoose: Schema.Types.Mixed
+        json_back:
+          type: 'object'
+      ,
         # Mongoose doesn't have a way to specify if a field that contains
         # nested fields is required or not. So this case is weird...
         json:
@@ -162,16 +166,19 @@ describe 'mongoose schema conversion:', ->
           properties:
             name:
               type: 'object'
-              properties: {}
+              properties:
+                first: type: 'string'
           required: ['name']
         mongoose:
-          name: {}
+          name:
+            first: String
         json_back:
           type: 'object'
           properties:
             name:
               type: 'object'
-              properties: {}
+              properties:
+                first: type: 'string'
     ], ({json, mongoose, json_back}) ->
       json.definitions = custom_types.objectid.definition
       json_back.definitions = custom_types.objectid.definition
