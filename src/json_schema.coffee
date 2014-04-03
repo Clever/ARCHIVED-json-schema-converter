@@ -4,9 +4,20 @@ JaySchema = require 'jayschema'
 mongoose = require 'mongoose'
 custom_types = require './custom_types'
 
-_.mixin concatMap: (args...) -> _.flatten _.map(args...), true
+_.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
 module.exports =
+  # Validate an object against a schema.
+  # If given just a schema, validates it against the JSON schema meta-schema
+  # JaySchema references the meta-schema by its url even though it is bundled
+  # locally in the library (http://json-schema.org)
+  validate: validate = do ->
+    validator = new JaySchema()
+    (instance, schema='http://json-schema.org/draft-04/schema#') ->
+      validator.validate instance, schema
+
+  is_valid: is_valid = _.compose _.isEmpty, validate
+
   to_mongoose_schema: do ->
     type_string_to_mongoose_type =
       'string'  : String
@@ -68,13 +79,17 @@ module.exports =
       # JSON Schemas- not a big deal.
       _.extend convert(mongoose_schema), definitions: custom_types.objectid.definition
 
-  # Validate an object against a schema.
-  # If given just a schema, validates it against the JSON schema meta-schema
-  # JaySchema references the meta-schema by its url even though it is bundled
-  # locally in the library (http://json-schema.org)
-  validate: validate = do ->
-    validator = new JaySchema()
-    (instance, schema='http://json-schema.org/draft-04/schema#') ->
-      validator.validate instance, schema
-
-  is_valid: is_valid = _.compose _.isEmpty, validate
+  spec_from_mongoose_schema: (mongoose_schema) ->
+    spec_from_tree = (tree) ->
+      switch
+        when _.isArray tree
+          _.map tree, spec_from_tree
+        when tree.type?
+          tree.type
+        when _.isPlainObject tree
+          # Remove virtuals
+          tree = _.filterValues tree, (subtree) -> not (subtree.getters? and subtree.setters?)
+          _.mapValues tree, spec_from_tree
+        else
+          tree
+    spec_from_tree mongoose_schema.tree
