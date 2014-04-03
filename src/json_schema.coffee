@@ -98,6 +98,8 @@ module.exports =
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
+        when tree.type? and tree.required?
+          _.pick tree, ['type', 'required']
         when tree.type?
           tree.type
         when _.isPlainObject tree

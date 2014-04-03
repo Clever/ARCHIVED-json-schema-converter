@@ -213,6 +213,12 @@ describe 'mongoose schema conversion:', ->
     ,
       spec: sister: { type: Schema.Types.ObjectId, ref: 'Person' }
       expected: sister: Schema.Types.ObjectId
+    ,
+      spec: name: { type: String, required: true }
+      expected: null # same as spec
+    ,
+      spec: name: first: { type: String, required: true }
+      expected: null # same as spec
     ], ({spec, expected}) ->
       expected ?= spec
       it "extracts spec from schema #{inspect spec}", ->
