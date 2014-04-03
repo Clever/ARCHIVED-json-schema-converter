@@ -1,5 +1,6 @@
 _ = require 'underscore'
 _.mixin require 'underscore.deep'
+{inspect} = require 'util'
 JaySchema = require 'jayschema'
 mongoose = require 'mongoose'
 custom_types = require './custom_types'
@@ -33,19 +34,22 @@ module.exports =
           mongoose.Schema.Types.ObjectId
         when json_schema.type is 'string' and json_schema.format is 'date-time'
           Date
-        when json_schema.type of type_string_to_mongoose_type
+        when type_string_to_mongoose_type[json_schema.type]?
           type_string_to_mongoose_type[json_schema.type]
         when json_schema.type is 'object'
-          converted = _.mapValues json_schema.properties, convert
-          if json_schema.required?
-            _.mapValues converted, (subschema, key) ->
-              if key in json_schema.required and not _.isPlainObject subschema
-                type: subschema
-                required: true
-              else
-                subschema
+          if not json_schema.properties? or _.isEmpty json_schema.properties
+            mongoose.Schema.Types.Mixed
           else
-            converted
+            converted = _.mapValues json_schema.properties, convert
+            if json_schema.required?
+              _.mapValues converted, (subschema, key) ->
+                if key in json_schema.required and not _.isPlainObject subschema
+                  type: subschema
+                  required: true
+                else
+                  subschema
+            else
+              converted
         else
           throw new Error "Unsupported JSON schema type #{json_schema.type}"
 
@@ -54,24 +58,19 @@ module.exports =
       convert json_schema
 
   from_mongoose_schema: do ->
-    # no 'integer' b/c mongoose has only a 'Number' type
-    mongoose_type_to_type_string =
-      String  : 'string'
-      Boolean : 'boolean'
-      Number  : 'number'
+    # No 'integer' b/c mongoose has only a 'Number' type
+    mongoose_type_to_schema =
+      Number  : -> type: 'number'
+      String  : -> type: 'string'
+      Boolean : -> type: 'boolean'
+      Date    : -> type: 'string', format: 'date-time'
+      ObjectId: -> $ref: custom_types.objectid.ref
+      Mixed   : -> type: 'object' # No constraints on properties
 
     convert = (mongoose_fragment) ->
-      # figure out type and properties
       switch
-        when mongoose_fragment is undefined
-          {}
-        when mongoose_fragment.name is 'Date'
-          type:'string'
-          format: 'date-time'
-        when mongoose_fragment.name is 'ObjectId'
-          $ref: custom_types.objectid.ref
-        when mongoose_fragment.name of mongoose_type_to_type_string
-          type: mongoose_type_to_type_string[mongoose_fragment.name]
+        when mongoose_type_to_schema[mongoose_fragment.name]?
+          mongoose_type_to_schema[mongoose_fragment.name]()
         when mongoose_fragment.type?
           convert mongoose_fragment.type
         when _.isPlainObject mongoose_fragment
@@ -81,7 +80,7 @@ module.exports =
             properties: _.mapValues mongoose_fragment, convert
             if _.isEmpty required then {} else {required}
         else
-          throw new Error "Unsupported mongoose schema type #{mongoose_fragment}"
+          throw new Error "Unsupported mongoose schema type #{inspect mongoose_fragment}"
 
     (mongoose_schema) ->
       try
