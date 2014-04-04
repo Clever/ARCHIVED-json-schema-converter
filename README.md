@@ -37,7 +37,7 @@ your_mongoose_object = new mongoose.Schema your_mongoose_schema
 # want to convert back? See the examples!
 ```
 
-See [the examples]('./examples') for usage.
+See [the examples](examples) for usage.
 
 
 ## Future Path
