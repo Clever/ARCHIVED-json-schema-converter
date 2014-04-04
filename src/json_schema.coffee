@@ -4,6 +4,7 @@ _.mixin require 'underscore.deep'
 JaySchema = require 'jayschema'
 mongoose = require 'mongoose'
 custom_types = require './custom_types'
+constants = require './constants'
 
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
@@ -32,7 +33,7 @@ module.exports =
           if json_schema.$ref not in _.pluck custom_types, 'ref'
             throw new Error "Unsupported $ref value: #{json_schema.$ref}"
           mongoose.Schema.Types.ObjectId
-        when json_schema.type is 'string' and json_schema.format is 'date-time'
+        when json_schema.type is 'string' and (json_schema.format is 'date-time' or json_schema.pattern is constants.js_simple_date_regex)
           Date
         when type_string_to_mongoose_type[json_schema.type]?
           type_string_to_mongoose_type[json_schema.type]
@@ -65,7 +66,7 @@ module.exports =
       Number  : -> type: 'number'
       String  : -> type: 'string'
       Boolean : -> type: 'boolean'
-      Date    : -> type: 'string', format: 'date-time'
+      Date    : -> type: 'string', pattern: constants.js_simple_date_regex
       ObjectId: -> $ref: custom_types.objectid.ref
       Mixed   : -> type: 'object' # No constraints on properties
 

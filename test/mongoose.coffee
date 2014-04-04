@@ -5,6 +5,7 @@ _.mixin require 'underscore.deep'
 {inspect} = require 'util'
 json_schema = require '../src/json_schema'
 custom_types = require '../src/custom_types'
+constants = require '../src/constants'
 
 assert.deepEqual = do ->
   orig_deepEqual = assert.deepEqual
@@ -58,7 +59,7 @@ describe 'mongoose schema conversion:', ->
     ,
       json: { type: 'number' },   mongoose: Number
     ,
-      json: { type: 'string', format: 'date-time' },  mongoose: Date
+      json: { type: 'string', pattern: constants.js_simple_date_regex },  mongoose: Date
     ,
       json: { type: 'object' },   mongoose: Schema.Types.Mixed
     ,
@@ -83,7 +84,7 @@ describe 'mongoose schema conversion:', ->
         properties:
           email: type: 'string'
           age: type: 'number'
-          birthday: type: 'string', format:'date-time'
+          birthday: type: 'string', pattern: constants.js_simple_date_regex
           oid: $ref: '#/definitions/objectid'
       mongoose:
         email: String
@@ -206,6 +207,17 @@ describe 'mongoose schema conversion:', ->
               type: 'object'
               properties:
                 first: type: 'string'
+      ,
+        json:
+          type: 'object'
+          properties:
+            birthday: type: 'string', format: 'date-time'
+        mongoose:
+          birthday: Date
+        json_back:
+          type: 'object'
+          properties:
+            birthday: type: 'string', pattern: constants.js_simple_date_regex
     ], ({json, mongoose, json_back}) ->
       json.definitions = custom_types.objectid.definition
       json_back.definitions = custom_types.objectid.definition
