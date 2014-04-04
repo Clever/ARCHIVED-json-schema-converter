@@ -37,6 +37,8 @@ describe 'mongoose schema conversion:', ->
   describe '.from_mongoose_schema', ->
     _.each [
       foo: "bar"
+    ,
+      tags: [String, Number]
     ], (invalid) ->
       it "throws on invalid mongoose schema #{inspect invalid}", ->
         assert.throws (-> json_schema.from_mongoose_schema invalid), /Invalid mongoose schema/
@@ -50,17 +52,25 @@ describe 'mongoose schema conversion:', ->
   describe 'symmetric conversion:', ->
     _.each [
       # Non-object schemas
-      json: { type: 'string' },  mongoose: String
+      json: { type: 'string' },   mongoose: String
     ,
-      json: { type: 'boolean' }, mongoose: Boolean
+      json: { type: 'boolean' },  mongoose: Boolean
     ,
-      json: { type: 'number' },  mongoose: Number
+      json: { type: 'number' },   mongoose: Number
     ,
       json: { type: 'string', format: 'date-time' },  mongoose: Date
     ,
-      json: { type: 'object' },  mongoose: Schema.Types.Mixed
+      json: { type: 'object' },   mongoose: Schema.Types.Mixed
+    ,
+      json: { type: 'array' },    mongoose: []
     ,
       json: { $ref: '#/definitions/objectid' },  mongoose: Schema.Types.ObjectId
+    ,
+      # Simple arrays
+      json:
+        type: 'array'
+        items: type: 'string'
+      mongoose: [String]
     ,
       # Simple objects
       json:
@@ -121,6 +131,23 @@ describe 'mongoose schema conversion:', ->
         name:
           first: type: String, required: true
           last: String
+    ,
+      # Arrays and objects
+      json:
+        type: 'array'
+        items:
+          type: 'object'
+          properties:
+            name: type: 'string'
+      mongoose: [{ name: String }]
+    ,
+      json:
+        type: 'object'
+        properties:
+          tags:
+            type: 'array'
+            items: type: 'string'
+      mongoose: tags: [String]
     ], ({json, mongoose}) ->
       ###
       The objectid ref definition needs to be added to the incoming

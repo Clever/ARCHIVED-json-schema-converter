@@ -50,6 +50,8 @@ module.exports =
                   subschema
             else
               converted
+        when json_schema.type is 'array'
+          if json_schema.items? then [convert json_schema.items] else []
         else
           throw new Error "Unsupported JSON schema type #{json_schema.type}"
 
@@ -79,6 +81,11 @@ module.exports =
             type: 'object'
             properties: _.mapValues mongoose_fragment, convert
             if _.isEmpty required then {} else {required}
+        when _.isArray mongoose_fragment
+          switch mongoose_fragment.length
+            when 0 then type: 'array'
+            when 1 then type: 'array', items: convert mongoose_fragment[0]
+            else throw new Error "Invalid mongoose schema: array can't contain more than one subschema"
         else
           throw new Error "Unsupported mongoose schema type #{inspect mongoose_fragment}"
 
