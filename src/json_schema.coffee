@@ -70,7 +70,7 @@ module.exports =
           throw new Error "Unsupported JSON schema type #{json_schema.type}"
 
     (json_schema) ->
-      throw new Error 'Invalid JSON schema' unless is_valid json_schema
+      throw new Error "Invalid JSON schema, issue at: #{validate(json_schema)[0].instanceContext}" unless is_valid json_schema
       convert json_schema
 
   from_mongoose_schema: do ->
@@ -87,7 +87,7 @@ module.exports =
       switch
         when mongoose_type_to_schema[mongoose_fragment.name]?
           mongoose_type_to_schema[mongoose_fragment.name]()
-        when mongoose_fragment.type?
+        when mongoose_fragment.type? and has_non_mongoose_reserved_keys mongoose_fragment
           convert mongoose_fragment.type
         when _.isPlainObject mongoose_fragment
           required = _.keys _.filterValues mongoose_fragment, (subfragment) -> subfragment.required

@@ -105,6 +105,16 @@ describe 'mongoose schema conversion:', ->
           first: String
           last: String
     ,
+      # Objects with type as field name
+      json:
+        type: 'object'
+        properties:
+          foo: type: 'number'
+          type: type: 'string'
+      mongoose:
+        foo: Number
+        type: String
+    ,
       # Objects with required fields
       json:
         type: 'object'
