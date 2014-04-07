@@ -7,6 +7,14 @@ custom_types = require './custom_types'
 
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
+# from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
+has_non_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
+  'default', 'index', 'unique', 'required', 'auto',
+  'sparse', 'select', 'set', 'get', 'type', 'ref',
+  'validate', 'getDefault', 'applySetters',
+  'applyGetters', 'doValidate'
+]
+
 module.exports =
   # Validate an object against a schema.
   # If given just a schema, validates it against the JSON schema meta-schema
@@ -113,9 +121,9 @@ module.exports =
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
-        when tree.type? and tree.required?
+        when tree.type? and tree.required? and has_non_mongoose_reserved_keys tree
           _.pick tree, ['type', 'required']
-        when tree.type?
+        when tree.type? and has_non_mongoose_reserved_keys tree
           tree.type
         when _.isPlainObject tree
           # Remove virtuals
