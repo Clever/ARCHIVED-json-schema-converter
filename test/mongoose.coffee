@@ -5,7 +5,6 @@ _.mixin require 'underscore.deep'
 {inspect} = require 'util'
 json_schema = require '../src/json_schema'
 custom_types = require '../src/custom_types'
-constants = require '../src/constants'
 
 assert.deepEqual = do ->
   orig_deepEqual = assert.deepEqual
@@ -59,13 +58,13 @@ describe 'mongoose schema conversion:', ->
     ,
       json: { type: 'number' },   mongoose: Number
     ,
-      json: { type: 'string', pattern: constants.js_simple_date_regex },  mongoose: Date
-    ,
       json: { type: 'object' },   mongoose: Schema.Types.Mixed
     ,
       json: { type: 'array' },    mongoose: []
     ,
       json: { $ref: '#/definitions/objectid' },  mongoose: Schema.Types.ObjectId
+    ,
+      json: { $ref: '#/definitions/date_or_datetime' },  mongoose: Date
     ,
       # Simple arrays
       json:
@@ -84,7 +83,7 @@ describe 'mongoose schema conversion:', ->
         properties:
           email: type: 'string'
           age: type: 'number'
-          birthday: type: 'string', pattern: constants.js_simple_date_regex
+          birthday: $ref: '#/definitions/date_or_datetime'
           oid: $ref: '#/definitions/objectid'
       mongoose:
         email: String
@@ -151,14 +150,16 @@ describe 'mongoose schema conversion:', ->
       mongoose: tags: [String]
     ], ({json, mongoose}) ->
       ###
-      The objectid ref definition needs to be added to the incoming
+      The custom ref definitions need to be added to the incoming
       JSON-schema objects so that any tests can refer to it with:
-        $ref: '#/definitions/objectid'
+        $ref: '#/definitions/objectid', etc
 
-      We really only need to add it to the ones which reference, the
-      objectid definition, but this is cleaner.
+      We really only need to add it to the ones which reference the
+      objectid, date_or_datetime definition, but this is cleaner.
       ###
-      json.definitions = custom_types.objectid.definition
+      json.definitions = _.extend {},
+        custom_types.objectid.definition,
+        custom_types.date_or_datetime.definition
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
@@ -211,16 +212,33 @@ describe 'mongoose schema conversion:', ->
         json:
           type: 'object'
           properties:
-            birthday: type: 'string', format: 'date-time'
+            birthday:
+              type: 'string'
+              format: 'date'
         mongoose:
           birthday: Date
         json_back:
           type: 'object'
           properties:
-            birthday: type: 'string', pattern: constants.js_simple_date_regex
+            birthday: $ref: "#/definitions/date_or_datetime"
+      ,
+        json:
+          type: 'object'
+          properties:
+            birthday:
+              type: 'string'
+              format: 'date-time'
+        mongoose:
+          birthday: Date
+        json_back:
+          type: 'object'
+          properties:
+            birthday: $ref: "#/definitions/date_or_datetime"
     ], ({json, mongoose, json_back}) ->
-      json.definitions = custom_types.objectid.definition
-      json_back.definitions = custom_types.objectid.definition
+      json.definitions = _.extend {},
+        custom_types.objectid.definition,
+        custom_types.date_or_datetime.definition
+      json_back.definitions = json.definitions
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose

@@ -10,7 +10,7 @@
     },
     "birthday": {
       "type": "string",
-      "format": "date-time"
+      "format": "date"
     },
     "knows_json": {
       "type": "boolean"
