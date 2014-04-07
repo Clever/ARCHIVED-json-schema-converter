@@ -7,6 +7,14 @@ custom_types = require './custom_types'
 
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
+# from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
+has_non_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
+  'default', 'index', 'unique', 'required', 'auto',
+  'sparse', 'select', 'set', 'get', 'type', 'ref',
+  'validate', 'getDefault', 'applySetters',
+  'applyGetters', 'doValidate'
+]
+
 module.exports =
   # Validate an object against a schema.
   # If given just a schema, validates it against the JSON schema meta-schema
@@ -25,15 +33,21 @@ module.exports =
       'boolean' : Boolean
       'number'  : Number
       'integer' : Number
+    type_ref_to_mongoose_type =
+      objectid         : mongoose.Schema.Types.ObjectId
+      date_or_datetime : Date
 
     convert = (json_schema) ->
       switch
         when json_schema.$ref?
-          if json_schema.$ref not in _.pluck custom_types, 'ref'
+          custom_name = _.first _.compact _.map custom_types,
+            (v,k) -> k if v.ref is json_schema.$ref
+          unless custom_name? and type_ref_to_mongoose_type[custom_name]?
             throw new Error "Unsupported $ref value: #{json_schema.$ref}"
-          mongoose.Schema.Types.ObjectId
-        when json_schema.type is 'string' and json_schema.format is 'date-time'
-          Date
+          type_ref_to_mongoose_type[custom_name]
+        # also handle incoming date or date-time formats
+        when json_schema.type is 'string' and json_schema.format in ['date', 'date-time']
+          type_ref_to_mongoose_type.date_or_datetime
         when type_string_to_mongoose_type[json_schema.type]?
           type_string_to_mongoose_type[json_schema.type]
         when json_schema.type is 'object'
@@ -65,7 +79,7 @@ module.exports =
       Number  : -> type: 'number'
       String  : -> type: 'string'
       Boolean : -> type: 'boolean'
-      Date    : -> type: 'string', format: 'date-time'
+      Date    : -> $ref: custom_types.date_or_datetime.ref
       ObjectId: -> $ref: custom_types.objectid.ref
       Mixed   : -> type: 'object' # No constraints on properties
 
@@ -97,16 +111,19 @@ module.exports =
       # Really, we only need to add the ObjectId type definition to those schemas
       # which include a $ref to object id, but for now we can just append to all
       # JSON Schemas- not a big deal.
-      _.extend convert(mongoose_schema), definitions: custom_types.objectid.definition
+      _.extend convert(mongoose_schema),
+        definitions: _.extend {},
+          custom_types.objectid.definition,
+          custom_types.date_or_datetime.definition
 
   spec_from_mongoose_schema: (mongoose_schema) ->
     spec_from_tree = (tree) ->
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
-        when tree.type? and tree.required?
+        when tree.type? and tree.required? and has_non_mongoose_reserved_keys tree
           _.pick tree, ['type', 'required']
-        when tree.type?
+        when tree.type? and has_non_mongoose_reserved_keys tree
           tree.type
         when _.isPlainObject tree
           # Remove virtuals

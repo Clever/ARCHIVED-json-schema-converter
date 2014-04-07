@@ -58,13 +58,13 @@ describe 'mongoose schema conversion:', ->
     ,
       json: { type: 'number' },   mongoose: Number
     ,
-      json: { type: 'string', format: 'date-time' },  mongoose: Date
-    ,
       json: { type: 'object' },   mongoose: Schema.Types.Mixed
     ,
       json: { type: 'array' },    mongoose: []
     ,
       json: { $ref: '#/definitions/objectid' },  mongoose: Schema.Types.ObjectId
+    ,
+      json: { $ref: '#/definitions/date_or_datetime' },  mongoose: Date
     ,
       # Simple arrays
       json:
@@ -83,7 +83,7 @@ describe 'mongoose schema conversion:', ->
         properties:
           email: type: 'string'
           age: type: 'number'
-          birthday: type: 'string', format:'date-time'
+          birthday: $ref: '#/definitions/date_or_datetime'
           oid: $ref: '#/definitions/objectid'
       mongoose:
         email: String
@@ -150,14 +150,16 @@ describe 'mongoose schema conversion:', ->
       mongoose: tags: [String]
     ], ({json, mongoose}) ->
       ###
-      The objectid ref definition needs to be added to the incoming
+      The custom ref definitions need to be added to the incoming
       JSON-schema objects so that any tests can refer to it with:
-        $ref: '#/definitions/objectid'
+        $ref: '#/definitions/objectid', etc
 
-      We really only need to add it to the ones which reference, the
-      objectid definition, but this is cleaner.
+      We really only need to add it to the ones which reference the
+      objectid, date_or_datetime definition, but this is cleaner.
       ###
-      json.definitions = custom_types.objectid.definition
+      json.definitions = _.extend {},
+        custom_types.objectid.definition,
+        custom_types.date_or_datetime.definition
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
@@ -206,9 +208,37 @@ describe 'mongoose schema conversion:', ->
               type: 'object'
               properties:
                 first: type: 'string'
+      ,
+        json:
+          type: 'object'
+          properties:
+            birthday:
+              type: 'string'
+              format: 'date'
+        mongoose:
+          birthday: Date
+        json_back:
+          type: 'object'
+          properties:
+            birthday: $ref: "#/definitions/date_or_datetime"
+      ,
+        json:
+          type: 'object'
+          properties:
+            birthday:
+              type: 'string'
+              format: 'date-time'
+        mongoose:
+          birthday: Date
+        json_back:
+          type: 'object'
+          properties:
+            birthday: $ref: "#/definitions/date_or_datetime"
     ], ({json, mongoose, json_back}) ->
-      json.definitions = custom_types.objectid.definition
-      json_back.definitions = custom_types.objectid.definition
+      json.definitions = _.extend {},
+        custom_types.objectid.definition,
+        custom_types.date_or_datetime.definition
+      json_back.definitions = json.definitions
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
@@ -258,3 +288,48 @@ describe 'mongoose schema conversion:', ->
       it "extracts spec from schema #{inspect spec}", ->
         assert.deepEqual json_schema.spec_from_mongoose_schema(new Schema spec),
           _.extend expected, _id: Schema.Types.ObjectId
+
+    # mongoose turns type into an array when instantiating, we need to
+    # do things differently when testing 'type'
+    _.each [
+      input:
+        tree:
+          created:
+            index: true
+            required: true
+            type: Date
+          type:
+            index: true
+            required: true
+            type: String
+          required:
+            type: Boolean
+      expected:
+        type: { type: String, required: true }
+        created: { type: Date, required: true }
+        required: Boolean
+    ,
+      input:
+        tree:
+          foo: type: String
+          type:
+            first: type: String
+            type: type: String
+            required: type: String
+      expected:
+        foo: String
+        type:
+          first: String
+          type: String
+          required: String
+    ,
+      # unfortunately, if the ONLY schema fields match the mongoose required
+      # fields, then we error a bit. This is a mongoose problem, though, really.
+      input:
+        tree:
+          type: first: String
+      expected:
+        first: String
+    ], ({input, expected}) ->
+      it "can handle a tree with a type field", ->
+        assert.deepEqual json_schema.spec_from_mongoose_schema(input), expected
