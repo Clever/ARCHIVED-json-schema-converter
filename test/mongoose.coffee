@@ -283,39 +283,29 @@ describe 'mongoose schema conversion:', ->
     ,
       spec: name: first: { type: String, required: true }
       expected: null # same as spec
-    ], ({spec, expected}) ->
-      expected ?= spec
-      it "extracts spec from schema #{inspect spec}", ->
-        assert.deepEqual json_schema.spec_from_mongoose_schema(new Schema spec),
-          _.extend expected, _id: Schema.Types.ObjectId
-
-    # mongoose turns type into an array when instantiating, we need to
-    # do things differently when testing 'type'
-    _.each [
-      input:
-        tree:
-          created:
-            index: true
-            required: true
-            type: Date
-          type:
-            index: true
-            required: true
-            type: String
-          required:
-            type: Boolean
+    ,
+      spec:
+        created:
+          index: true
+          required: true
+          type: Date
+        type:
+          index: true
+          required: true
+          type: String
+        required:
+          type: Boolean
       expected:
         type: { type: String, required: true }
         created: { type: Date, required: true }
         required: Boolean
     ,
-      input:
-        tree:
-          foo: type: String
-          type:
-            first: type: String
-            type: type: String
-            required: type: String
+      spec:
+        foo: type: String
+        type:
+          first: type: String
+          type: type: String
+          required: type: String
       expected:
         foo: String
         type:
@@ -323,13 +313,10 @@ describe 'mongoose schema conversion:', ->
           type: String
           required: String
     ,
-      # unfortunately, if the ONLY schema fields match the mongoose required
-      # fields, then we error a bit. This is a mongoose problem, though, really.
-      input:
-        tree:
-          type: first: String
-      expected:
-        first: String
-    ], ({input, expected}) ->
-      it "can handle a tree with a type field", ->
-        assert.deepEqual json_schema.spec_from_mongoose_schema(input), expected
+      spec: type: first: String
+      expected: type: first: String
+    ], ({spec, expected}) ->
+      expected ?= spec
+      it "extracts spec from schema #{inspect spec}", ->
+        assert.deepEqual json_schema.spec_from_mongoose_schema(new Schema spec),
+          _.extend expected, _id: Schema.Types.ObjectId
