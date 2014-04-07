@@ -103,10 +103,7 @@ module.exports =
       # Really, we only need to add the ObjectId type definition to those schemas
       # which include a $ref to object id, but for now we can just append to all
       # JSON Schemas- not a big deal.
-      _.extend convert(mongoose_schema),
-        definitions: _.extend {},
-          custom_types.objectid.definition,
-          custom_types.date_or_datetime.definition
+      _.extend convert(mongoose_schema), definitions: custom_types
 
   spec_from_mongoose_schema: (mongoose_schema) ->
     spec_from_tree = (tree) ->

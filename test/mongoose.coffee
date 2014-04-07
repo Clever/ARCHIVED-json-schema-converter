@@ -157,9 +157,7 @@ describe 'mongoose schema conversion:', ->
       We really only need to add it to the ones which reference the
       objectid, date_or_datetime definition, but this is cleaner.
       ###
-      json.definitions = _.extend {},
-        custom_types.objectid.definition,
-        custom_types.date_or_datetime.definition
+      json.definitions = custom_types
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
@@ -235,9 +233,8 @@ describe 'mongoose schema conversion:', ->
           properties:
             birthday: $ref: "#/definitions/date_or_datetime"
     ], ({json, mongoose, json_back}) ->
-      json.definitions = _.extend {},
-        custom_types.objectid.definition,
-        custom_types.date_or_datetime.definition
+
+      json.definitions = _.extend {}, custom_types
       json_back.definitions = json.definitions
 
       it ".to_mongoose converts #{inspect json}", ->
