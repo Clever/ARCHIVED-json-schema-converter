@@ -90,3 +90,22 @@ describe 'date regex tests:', ->
     reg = new RegExp custom_types.date_or_datetime.definition.date_or_datetime.pattern
     it "fails the iso8601 regex #{input}", ->
       assert.equal false, reg.test input
+
+describe 'mongoose object id test', ->
+  _.each [
+    "aaaaa11111bbbbb22222cccc"
+    "AAAAA11111BBBBB22222CCCC"
+  ], (input) ->
+    reg = new RegExp custom_types.objectid.definition.objectid.pattern
+    it "succeeds in passing the objectId regex", ->
+      assert reg.test input
+
+  _.each [
+    5
+    'foo'
+    'aaaabbbb'
+    'ZZZZZYYYYYXXXXXUUUUUTTTT'
+  ], (input) ->
+    reg = new RegExp custom_types.objectid.definition.objectid.pattern
+    it "fails in passing the objectId regex", ->
+      assert.equal false, reg.test input
