@@ -105,6 +105,16 @@ describe 'mongoose schema conversion:', ->
           first: String
           last: String
     ,
+      # Objects with type as field name
+      json:
+        type: 'object'
+        properties:
+          foo: type: 'number'
+          type: type: 'string'
+      mongoose:
+        foo: Number
+        type: String
+    ,
       # Objects with required fields
       json:
         type: 'object'
@@ -280,6 +290,38 @@ describe 'mongoose schema conversion:', ->
     ,
       spec: name: first: { type: String, required: true }
       expected: null # same as spec
+    ,
+      spec:
+        created:
+          index: true
+          required: true
+          type: Date
+        type:
+          index: true
+          required: true
+          type: String
+        required:
+          type: Boolean
+      expected:
+        type: { type: String, required: true }
+        created: { type: Date, required: true }
+        required: Boolean
+    ,
+      spec:
+        foo: type: String
+        type:
+          first: type: String
+          type: type: String
+          required: type: String
+      expected:
+        foo: String
+        type:
+          first: String
+          type: String
+          required: String
+    ,
+      spec: type: first: String
+      expected: type: first: String
     ], ({spec, expected}) ->
       expected ?= spec
       it "extracts spec from schema #{inspect spec}", ->

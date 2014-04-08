@@ -7,6 +7,20 @@ custom_types = require './custom_types'
 
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
+# list from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
+#
+# This is very much a hack. In mongoose, there is no way to determine if
+# an object is just a subschema or is the options object of a field.
+# The 'solution' is to see if there are any keys of the object which are
+# NOT mongoose reserved keys- if there are only mongoose reserved keys,
+# very very likely the object is just an options object
+has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
+  'default', 'index', 'unique', 'required', 'auto',
+  'sparse', 'select', 'set', 'get', 'type', 'ref',
+  'validate', 'getDefault', 'applySetters',
+  'applyGetters', 'doValidate'
+]
+
 module.exports =
   # Validate an object against a schema.
   # If given just a schema, validates it against the JSON schema meta-schema
@@ -62,7 +76,7 @@ module.exports =
           throw new Error "Unsupported JSON schema type #{json_schema.type}"
 
     (json_schema) ->
-      throw new Error 'Invalid JSON schema' unless is_valid json_schema
+      throw new Error "Invalid JSON schema, issue at: #{validate(json_schema)[0].instanceContext}" unless is_valid json_schema
       convert json_schema
 
   from_mongoose_schema: do ->
@@ -79,7 +93,7 @@ module.exports =
       switch
         when mongoose_type_to_schema[mongoose_fragment.name]?
           mongoose_type_to_schema[mongoose_fragment.name]()
-        when mongoose_fragment.type?
+        when mongoose_fragment.type? and has_only_mongoose_reserved_keys mongoose_fragment # is options obj
           convert mongoose_fragment.type
         when _.isPlainObject mongoose_fragment
           required = _.keys _.filterValues mongoose_fragment, (subfragment) -> subfragment.required
@@ -110,10 +124,8 @@ module.exports =
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
-        when tree.type? and tree.required?
-          _.pick tree, ['type', 'required']
-        when tree.type?
-          tree.type
+        when tree.type? and has_only_mongoose_reserved_keys tree # is options obj
+          if tree.required? then _.pick tree, ['type', 'required'] else tree.type
         when _.isPlainObject tree
           # Remove virtuals
           tree = _.filterValues tree, (subtree) -> not (subtree.getters? and subtree.setters?)
