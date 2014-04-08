@@ -46,8 +46,8 @@ module.exports =
     convert = (json_schema) ->
       switch
         when json_schema.$ref?
-          custom_name = _.first _.compact _.map custom_types,
-            (v,k) -> k if v.ref is json_schema.$ref
+          def = _.findWhere custom_types, ref: json_schema.$ref
+          custom_name = _.keys(def.definition) if def? #only ever one key
           unless custom_name? and type_ref_to_mongoose_type[custom_name]?
             throw new Error "Unsupported $ref value: #{json_schema.$ref}"
           type_ref_to_mongoose_type[custom_name]

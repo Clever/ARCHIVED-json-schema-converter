@@ -244,8 +244,8 @@ describe 'mongoose schema conversion:', ->
             birthday: $ref: "#/definitions/date_or_datetime"
     ], ({json, mongoose, json_back}) ->
 
-      json.definitions = _.extend {}, custom_types
-      json_back.definitions = json.definitions
+      json.definitions = custom_types
+      json_back.definitions = custom_types
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
