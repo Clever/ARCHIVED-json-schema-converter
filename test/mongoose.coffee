@@ -167,7 +167,7 @@ describe 'mongoose schema conversion:', ->
       We really only need to add it to the ones which reference the
       objectid, date_or_datetime definition, but this is cleaner.
       ###
-      json.definitions = custom_types
+      json.definitions = _.extend({}, (_.pluck custom_types, 'definition')...)
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
@@ -244,13 +244,25 @@ describe 'mongoose schema conversion:', ->
             birthday: $ref: "#/definitions/date_or_datetime"
     ], ({json, mongoose, json_back}) ->
 
-      json.definitions = custom_types
-      json_back.definitions = custom_types
+      json.definitions = _.extend({}, (_.pluck custom_types, 'definition')...)
+      json_back.definitions = json.definitions
 
       it ".to_mongoose converts #{inspect json}", ->
         assert.deepEqual json_schema.to_mongoose_schema(json), mongoose
       it ".from_mongoose converts #{inspect mongoose}", ->
         assert.deepEqual json_schema.from_mongoose_schema(mongoose), json_back
+
+  describe 'tests that from_mongoose adds custom_types', ->
+    basic_mongoose = foo: String
+    basic_json =
+      definitions:
+        objectid: custom_types.objectid.definition.objectid
+        date_or_datetime: custom_types.date_or_datetime.definition.date_or_datetime
+      type: 'object'
+      properties: foo: type: 'string'
+    it 'from_mongoose creates the correct custom types', ->
+      assert.deepEqual json_schema.from_mongoose_schema(basic_mongoose), basic_json
+
 
   describe '.spec_from_mongoose_schema', ->
     _.each [

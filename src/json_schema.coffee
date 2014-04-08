@@ -17,7 +17,7 @@ _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) ->
 has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
   'default', 'index', 'unique', 'required', 'auto',
   'sparse', 'select', 'set', 'get', 'type', 'ref',
-  'validate', 'getDefault', 'applySetters',
+  'validate', 'getDefault', 'applySetters', 'trim',
   'applyGetters', 'doValidate'
 ]
 
@@ -117,7 +117,7 @@ module.exports =
       # Really, we only need to add the ObjectId type definition to those schemas
       # which include a $ref to object id, but for now we can just append to all
       # JSON Schemas- not a big deal.
-      _.extend convert(mongoose_schema), definitions: custom_types
+      _.extend convert(mongoose_schema), definitions: _.extend({}, (_.pluck custom_types, 'definition')...)
 
   spec_from_mongoose_schema: (mongoose_schema) ->
     spec_from_tree = (tree) ->
