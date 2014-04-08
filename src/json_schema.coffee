@@ -7,8 +7,14 @@ custom_types = require './custom_types'
 
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
-# from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
-has_non_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
+# list from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
+#
+# This is very much a hack. In mongoose, there is no way to determine if
+# an object is just a subschema or is the options object of a field.
+# The 'solution' is to see if there are any keys of the object which are
+# NOT mongoose reserved keys- if there are only mongoose reserved keys,
+# very very likely the object is just an options object
+has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
   'default', 'index', 'unique', 'required', 'auto',
   'sparse', 'select', 'set', 'get', 'type', 'ref',
   'validate', 'getDefault', 'applySetters',
@@ -87,7 +93,7 @@ module.exports =
       switch
         when mongoose_type_to_schema[mongoose_fragment.name]?
           mongoose_type_to_schema[mongoose_fragment.name]()
-        when mongoose_fragment.type? and has_non_mongoose_reserved_keys mongoose_fragment
+        when mongoose_fragment.type? and has_only_mongoose_reserved_keys mongoose_fragment # is options obj
           convert mongoose_fragment.type
         when _.isPlainObject mongoose_fragment
           required = _.keys _.filterValues mongoose_fragment, (subfragment) -> subfragment.required
@@ -121,10 +127,8 @@ module.exports =
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
-        when tree.type? and tree.required? and has_non_mongoose_reserved_keys tree
-          _.pick tree, ['type', 'required']
-        when tree.type? and has_non_mongoose_reserved_keys tree
-          tree.type
+        when tree.type? and has_only_mongoose_reserved_keys tree # is options obj
+          if tree.required? then _.pick tree, ['type', 'required'] else tree.type
         when _.isPlainObject tree
           # Remove virtuals
           tree = _.filterValues tree, (subtree) -> not (subtree.getters? and subtree.setters?)
