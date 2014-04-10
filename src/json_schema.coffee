@@ -32,6 +32,7 @@ has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
 ]
 
 module.exports =
+  custom_types: custom_types
   # Validate an object against a schema.
   # If given just a schema, validates it against the JSON schema meta-schema
   # JaySchema references the meta-schema by its url even though it is bundled
