@@ -56,9 +56,9 @@ module.exports =
     convert = (json_schema) ->
       switch
         when json_schema.$ref?
-          def = _.findWhere custom_types, ref: json_schema.$ref
-          custom_name = _.keys(def.definition) if def? #only ever one key
-          unless custom_name? and type_ref_to_mongoose_type[custom_name]?
+          custom_name = custom_types.ref_to_id[json_schema.$ref]
+          def = custom_types.id_to_def[custom_name]() if custom_name?
+          unless custom_name? and def? and type_ref_to_mongoose_type[custom_name]?
             throw new Error "Unsupported $ref value: #{json_schema.$ref}"
           type_ref_to_mongoose_type[custom_name]
         # also handle incoming date or date-time formats
@@ -95,8 +95,8 @@ module.exports =
       Number  : -> type: 'number'
       String  : -> type: 'string'
       Boolean : -> type: 'boolean'
-      Date    : -> $ref: custom_types.date_or_datetime.ref
-      ObjectId: -> $ref: custom_types.objectid.ref
+      Date    : -> $ref: custom_types.id_to_ref['date_or_datetime']()
+      ObjectId: -> $ref: custom_types.id_to_ref['objectid']()
       Mixed   : -> type: 'object' # No constraints on properties
 
     convert = (mongoose_fragment) ->
@@ -127,7 +127,8 @@ module.exports =
       # Really, we only need to add the ObjectId type definition to those schemas
       # which include a $ref to object id, but for now we can just append to all
       # JSON Schemas- not a big deal.
-      _.extend convert(mongoose_schema), definitions: _.extend({}, (_.pluck custom_types, 'definition')...)
+      _.extend convert(mongoose_schema), definitions: custom_types.definitions()
+
 
   spec_from_mongoose_schema: (mongoose_schema) ->
     spec_from_tree = (tree) ->

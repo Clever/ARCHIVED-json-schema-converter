@@ -19,7 +19,7 @@ describe 'date regex tests:', ->
     '2007-04-06T00:00'
     '2013-02-30' # unfortunately our regex is not smart enough
   ], (input) ->
-    reg = new RegExp custom_types.date_or_datetime.definition.date_or_datetime.pattern
+    reg = new RegExp custom_types.id_to_pattern.date_or_datetime()
     it "matches the iso8601 regex #{input}", ->
       assert reg.test input
     it "can parse date #{input}", ->
@@ -87,7 +87,7 @@ describe 'date regex tests:', ->
     '2010-02-18T16:23.33.600'
     '2010-02-18T16,25:23:48,444'
   ], (input) ->
-    reg = new RegExp custom_types.date_or_datetime.definition.date_or_datetime.pattern
+    reg = new RegExp custom_types.id_to_pattern.date_or_datetime()
     it "fails the iso8601 regex #{input}", ->
       assert.equal false, reg.test input
 
@@ -96,7 +96,7 @@ describe 'mongoose object id test', ->
     "aaaaa11111bbbbb22222cccc"
     "AAAAA11111BBBBB22222CCCC"
   ], (input) ->
-    reg = new RegExp custom_types.objectid.definition.objectid.pattern
+    reg = new RegExp custom_types.id_to_pattern.objectid()
     it "succeeds in passing the objectId regex", ->
       assert reg.test input
 
@@ -106,6 +106,6 @@ describe 'mongoose object id test', ->
     'aaaabbbb'
     'ZZZZZYYYYYXXXXXUUUUUTTTT'
   ], (input) ->
-    reg = new RegExp custom_types.objectid.definition.objectid.pattern
+    reg = new RegExp custom_types.id_to_pattern.objectid()
     it "fails in passing the objectId regex", ->
       assert.equal false, reg.test input

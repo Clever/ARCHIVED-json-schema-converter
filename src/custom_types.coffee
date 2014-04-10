@@ -1,3 +1,4 @@
+_ = require 'underscore'
 hour = '(0[0-9]|1[0-9]|2[0-3])'
 min_or_sec = '(:[0-5][0-9])'
 
@@ -24,10 +25,24 @@ DATE_OR_DATETIME_REGEX = ///     #          req?
   )? $
 ///
 
-module.exports =
+OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
+
+mappings =
   objectid:
     ref: "#/definitions/objectid"
-    definition: objectid: { type: 'string', pattern: '^[0-9a-fA-F]{24}$' }
+    def: objectid: { type: 'string', pattern: OBJECT_ID_REGEX.toString()[1..-2] }
+    pattern: OBJECT_ID_REGEX
   date_or_datetime:
     ref: "#/definitions/date_or_datetime"
-    definition: date_or_datetime: { type: 'string', pattern: DATE_OR_DATETIME_REGEX.toString()[1..-2] }
+    def: date_or_datetime: { type: 'string', pattern: DATE_OR_DATETIME_REGEX.toString()[1..-2] }
+    pattern: DATE_OR_DATETIME_REGEX
+
+# do this complicated mapping with functions to protect
+# the objects from being munged by library users
+module.exports =
+  id_to_ref: _.object _.keys(mappings), _.map _.pluck(mappings, 'ref'), (v) -> (-> v)
+  id_to_def: _.object _.keys(mappings), _.map _.pluck(mappings, 'def'), (v) -> (-> v)
+  id_to_pattern: _.object _.keys(mappings), _.map _.pluck(mappings, 'pattern'), (v) -> (-> v)
+
+  ref_to_id: _.object _.pluck(mappings, 'ref'), _.keys mappings
+  definitions: ( -> _.extend {},  _.pluck(mappings, 'def')...)
