@@ -8,7 +8,7 @@ custom_types = require './custom_types'
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
 # list from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
-# and http://mongoosejs.com/docs/api.html#schema_string_SchemaString-enum
+# and http://mongoosejs.com/docs/api.html
 #
 # This is very much a hack. In mongoose, there is no way to determine if
 # an object is just a subschema or is the options object of a field.
@@ -16,11 +16,19 @@ _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) ->
 # NOT mongoose reserved keys- if there are only mongoose reserved keys,
 # very very likely the object is just an options object
 has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
-  'default', 'index', 'unique', 'required', 'auto',
-  'sparse', 'select', 'set', 'get', 'type', 'ref',
-  'validate', 'getDefault', 'applySetters', 'trim',
-  'enum', 'match', 'lowercase', 'uppercase',
-  'applyGetters', 'doValidate'
+  'getDefault', 'applySetters',
+  'applyGetters', 'doValidate', 'type', 'ref',
+  #schemaType
+  'sparse', 'select', 'set', 'get', 'index', 'default',
+  'unique', 'required', 'validate',
+  #string
+  'enum', 'match', 'lowercase', 'uppercase', 'trim',
+  #date
+  'expires',
+  #number
+  'min', 'max',
+  #object
+  'auto'
 ]
 
 module.exports =
