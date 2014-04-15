@@ -32,7 +32,6 @@ has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
 ]
 
 module.exports =
-  custom_types: custom_types
   # Validate an object against a schema.
   # If given just a schema, validates it against the JSON schema meta-schema
   # JaySchema references the meta-schema by its url even though it is bundled
@@ -51,20 +50,15 @@ module.exports =
       'number'  : Number
       'integer' : Number
     type_ref_to_mongoose_type =
-      objectid         : mongoose.Schema.Types.ObjectId
-      date_or_datetime : Date
+      '#/definitions/objectid': mongoose.Schema.Types.ObjectId
+      '#/definitions/date_or_datetime': Date
 
     convert = (json_schema) ->
       switch
         when json_schema.$ref?
-          custom_name = custom_types.ref_to_id[json_schema.$ref]
-          def = custom_types.id_to_def[custom_name]() if custom_name?
-          unless custom_name? and def? and type_ref_to_mongoose_type[custom_name]?
-            throw new Error "Unsupported $ref value: #{json_schema.$ref}"
-          type_ref_to_mongoose_type[custom_name]
-        # also handle incoming date or date-time formats
+          type_ref_to_mongoose_type[json_schema.$ref] ? throw new Error "Unsupported $ref value: #{json_schema.$ref}"
         when json_schema.type is 'string' and json_schema.format in ['date', 'date-time']
-          type_ref_to_mongoose_type.date_or_datetime
+          type_ref_to_mongoose_type['#/definitions/date_or_datetime']
         when type_string_to_mongoose_type[json_schema.type]?
           type_string_to_mongoose_type[json_schema.type]
         when json_schema.type is 'object'
@@ -96,8 +90,8 @@ module.exports =
       Number  : -> type: 'number'
       String  : -> type: 'string'
       Boolean : -> type: 'boolean'
-      Date    : -> $ref: custom_types.id_to_ref['date_or_datetime']()
-      ObjectId: -> $ref: custom_types.id_to_ref['objectid']()
+      Date    : -> $ref: '#/definitions/date_or_datetime'
+      ObjectId: -> $ref: '#/definitions/objectid'
       Mixed   : -> type: 'object' # No constraints on properties
 
     convert = (mongoose_fragment) ->
@@ -128,7 +122,7 @@ module.exports =
       # Really, we only need to add the ObjectId type definition to those schemas
       # which include a $ref to object id, but for now we can just append to all
       # JSON Schemas- not a big deal.
-      _.extend convert(mongoose_schema), definitions: custom_types.definitions()
+      _.extend convert(mongoose_schema), definitions: _.deepClone custom_types
 
 
   spec_from_mongoose_schema: (mongoose_schema) ->

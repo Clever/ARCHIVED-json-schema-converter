@@ -4,6 +4,7 @@ assert = require 'assert'
 custom_types = require '../src/custom_types'
 
 describe 'date regex tests:', ->
+  date_regex = new RegExp custom_types.date_or_datetime.pattern
   # all examples are from:
   # http://www.pelagodesign.com/blog/2009/05/20/iso-8601-date-validation-that-doesnt-suck/
   _.each [
@@ -19,9 +20,8 @@ describe 'date regex tests:', ->
     '2007-04-06T00:00'
     '2013-02-30' # unfortunately our regex is not smart enough
   ], (input) ->
-    reg = new RegExp custom_types.id_to_pattern.date_or_datetime()
     it "matches the iso8601 regex #{input}", ->
-      assert reg.test input
+      assert date_regex.test input
     it "can parse date #{input}", ->
       assert Date.parse input
 
@@ -87,18 +87,17 @@ describe 'date regex tests:', ->
     '2010-02-18T16:23.33.600'
     '2010-02-18T16,25:23:48,444'
   ], (input) ->
-    reg = new RegExp custom_types.id_to_pattern.date_or_datetime()
-    it "fails the iso8601 regex #{input}", ->
-      assert.equal false, reg.test input
+    it "fails to match the iso8601 regex #{input}", ->
+      assert not date_regex.test input
 
 describe 'mongoose object id test', ->
+  objectid_regex = new RegExp custom_types.objectid.pattern
   _.each [
     "aaaaa11111bbbbb22222cccc"
     "AAAAA11111BBBBB22222CCCC"
   ], (input) ->
-    reg = new RegExp custom_types.id_to_pattern.objectid()
-    it "succeeds in passing the objectId regex", ->
-      assert reg.test input
+    it "matches the objectId regex: #{input}", ->
+      assert objectid_regex.test input
 
   _.each [
     5
@@ -106,6 +105,5 @@ describe 'mongoose object id test', ->
     'aaaabbbb'
     'ZZZZZYYYYYXXXXXUUUUUTTTT'
   ], (input) ->
-    reg = new RegExp custom_types.id_to_pattern.objectid()
-    it "fails in passing the objectId regex", ->
-      assert.equal false, reg.test input
+    it "fails to match the objectId regex: #{input}", ->
+      assert not objectid_regex.test input
