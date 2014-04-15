@@ -25,7 +25,7 @@ DATE_OR_DATETIME_REGEX = ///     #          req?
   )? $
 ///
 
-OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
+OBJECT_ID_REGEX = /^[0-9a-f]{24}$/
 
 module.exports =
   objectid: { type: 'string', pattern: OBJECT_ID_REGEX.toString()[1...-1] }

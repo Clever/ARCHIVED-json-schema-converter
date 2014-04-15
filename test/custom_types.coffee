@@ -94,7 +94,7 @@ describe 'mongoose object id test', ->
   objectid_regex = new RegExp custom_types.objectid.pattern
   _.each [
     "aaaaa11111bbbbb22222cccc"
-    "AAAAA11111BBBBB22222CCCC"
+    "fffff00000eeeee99999dddd"
   ], (input) ->
     it "matches the objectId regex: #{input}", ->
       assert objectid_regex.test input
@@ -103,6 +103,8 @@ describe 'mongoose object id test', ->
     5
     'foo'
     'aaaabbbb'
+    'ttttt11111uuuuu22222vvvv'
+    'AAAAA11111BBBBB22222CCCC'
     'ZZZZZYYYYYXXXXXUUUUUTTTT'
   ], (input) ->
     it "fails to match the objectId regex: #{input}", ->
