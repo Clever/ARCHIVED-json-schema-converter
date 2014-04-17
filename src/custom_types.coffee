@@ -12,6 +12,7 @@ DATE_OR_DATETIME_REGEX = ///     #          req?
         ( #{hour}                # hour 00   N
           #{min_or_sec}?         # min :00   N
           #{min_or_sec}?         # sec :00   N
+          (\.[0-9][0-9][0-9])?   # msec .000 N
         )?                       #           -
         (                        #           -
           [zZ]                   # Zz        N
