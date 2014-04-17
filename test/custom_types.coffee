@@ -87,6 +87,8 @@ describe 'date regex tests:', ->
     '2009-05-19 14.5.44'
     '2010-02-18T16:23.33.600'
     '2010-02-18T16,25:23:48,444'
+    '2014-02-28T02.877Z'
+    '2014-02-28T02:00.877Z'
   ], (input) ->
     it "fails to match the iso8601 regex #{input}", ->
       assert not date_regex.test input
