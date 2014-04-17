@@ -21,7 +21,7 @@ lib/%.js : src/%.coffee
 
 test: $(TESTS)
 
-% : test/%.coffee
+$(TESTS):
 	DEBUG=* NODE_ENV=test node_modules/mocha/bin/mocha -r coffee-errors --bail --compilers coffee:coffee-script test/$@.coffee
 
 test-cov:
