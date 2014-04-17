@@ -7,6 +7,30 @@ custom_types = require './custom_types'
 
 _.mixin filterValues: (obj, test) -> _.object _.filter _.pairs(obj), ([k, v]) -> test v, k
 
+# list from: https://github.com/LearnBoost/mongoose/blob/3.8.x/lib/schematype.js
+# and http://mongoosejs.com/docs/api.html
+#
+# This is very much a hack. In mongoose, there is no way to determine if
+# an object is just a subschema or is the options object of a field.
+# The 'solution' is to see if there are any keys of the object which are
+# NOT mongoose reserved keys- if there are only mongoose reserved keys,
+# very very likely the object is just an options object
+has_only_mongoose_reserved_keys = (obj) -> _.isEmpty _.difference _.keys(obj), [
+  'getDefault', 'applySetters',
+  'applyGetters', 'doValidate', 'type', 'ref',
+  #schemaType
+  'sparse', 'select', 'set', 'get', 'index', 'default',
+  'unique', 'required', 'validate',
+  #string
+  'enum', 'match', 'lowercase', 'uppercase', 'trim',
+  #date
+  'expires',
+  #number
+  'min', 'max',
+  #object
+  'auto'
+]
+
 module.exports =
   # Validate an object against a schema.
   # If given just a schema, validates it against the JSON schema meta-schema
@@ -25,15 +49,16 @@ module.exports =
       'boolean' : Boolean
       'number'  : Number
       'integer' : Number
+    type_ref_to_mongoose_type =
+      '#/definitions/objectid': mongoose.Schema.Types.ObjectId
+      '#/definitions/date_or_datetime': Date
 
     convert = (json_schema) ->
       switch
         when json_schema.$ref?
-          if json_schema.$ref not in _.pluck custom_types, 'ref'
-            throw new Error "Unsupported $ref value: #{json_schema.$ref}"
-          mongoose.Schema.Types.ObjectId
-        when json_schema.type is 'string' and json_schema.format is 'date-time'
-          Date
+          type_ref_to_mongoose_type[json_schema.$ref] ? throw new Error "Unsupported $ref value: #{json_schema.$ref}"
+        when json_schema.type is 'string' and json_schema.format in ['date', 'date-time']
+          type_ref_to_mongoose_type['#/definitions/date_or_datetime']
         when type_string_to_mongoose_type[json_schema.type]?
           type_string_to_mongoose_type[json_schema.type]
         when json_schema.type is 'object'
@@ -56,7 +81,7 @@ module.exports =
           throw new Error "Unsupported JSON schema type #{json_schema.type}"
 
     (json_schema) ->
-      throw new Error 'Invalid JSON schema' unless is_valid json_schema
+      throw new Error "Invalid JSON schema, issue at: #{validate(json_schema)[0].instanceContext}" unless is_valid json_schema
       convert json_schema
 
   from_mongoose_schema: do ->
@@ -65,15 +90,15 @@ module.exports =
       Number  : -> type: 'number'
       String  : -> type: 'string'
       Boolean : -> type: 'boolean'
-      Date    : -> type: 'string', format: 'date-time'
-      ObjectId: -> $ref: custom_types.objectid.ref
+      Date    : -> $ref: '#/definitions/date_or_datetime'
+      ObjectId: -> $ref: '#/definitions/objectid'
       Mixed   : -> type: 'object' # No constraints on properties
 
     convert = (mongoose_fragment) ->
       switch
         when mongoose_type_to_schema[mongoose_fragment.name]?
           mongoose_type_to_schema[mongoose_fragment.name]()
-        when mongoose_fragment.type?
+        when mongoose_fragment.type? and has_only_mongoose_reserved_keys mongoose_fragment # is options obj
           convert mongoose_fragment.type
         when _.isPlainObject mongoose_fragment
           required = _.keys _.filterValues mongoose_fragment, (subfragment) -> subfragment.required
@@ -97,17 +122,16 @@ module.exports =
       # Really, we only need to add the ObjectId type definition to those schemas
       # which include a $ref to object id, but for now we can just append to all
       # JSON Schemas- not a big deal.
-      _.extend convert(mongoose_schema), definitions: custom_types.objectid.definition
+      _.extend convert(mongoose_schema), definitions: _.deepClone custom_types
+
 
   spec_from_mongoose_schema: (mongoose_schema) ->
     spec_from_tree = (tree) ->
       switch
         when _.isArray tree
           _.map tree, spec_from_tree
-        when tree.type? and tree.required?
-          _.pick tree, ['type', 'required']
-        when tree.type?
-          tree.type
+        when tree.type? and has_only_mongoose_reserved_keys tree # is options obj
+          if tree.required? then _.pick tree, ['type', 'required'] else tree.type
         when _.isPlainObject tree
           # Remove virtuals
           tree = _.filterValues tree, (subtree) -> not (subtree.getters? and subtree.setters?)
