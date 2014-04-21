@@ -1,6 +1,6 @@
 {
   "name": "json-schema-converter",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A library to help validate JSON Schemas and convert between any other type of schema",
   "keywords": ["json_schema", "convert", "json", "mongo", "mongoose"],
   "homepage": "https://github.com/Clever/json-schema-converter",
