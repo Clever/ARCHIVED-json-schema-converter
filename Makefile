@@ -12,7 +12,7 @@ all: clean build test test-cov
 
 clean:
 	rm -rf lib
-	rm coverage.html
+	rm -f coverage.html
 
 build: $(LIBS)
 
