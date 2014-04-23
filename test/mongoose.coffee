@@ -276,6 +276,9 @@ describe 'mongoose schema conversion:', ->
       spec: tags: [String]
       expected: null # same as spec
     ,
+      spec: tags: [{type: String}]
+      expected: tags: [String]
+    ,
       spec: comments: [{ body: String }]
       expected: null # same as spec
     ,
