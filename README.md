@@ -1,5 +1,7 @@
 # JSON Schema Converter
 
+_ARCHIVED: This repo is no longer maintained by Clever. If you're interested in taking ownership, please let us know via a GH issue._
+
 A translation and validation library between [JSON Schema](http://json-schema.org/) and any other schema.
 
 Don't get locked into your database schema forever- make sure you can always
