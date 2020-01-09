@@ -21,10 +21,11 @@
   "license": "MIT",
   "dependencies": {
     "coffee-script": "~1.6.2",
-    "underscore": "~1.4.4",
-    "underscore.deep": "~0.0.2",
+    "jayschema": "0.2.0",
+    "kayvee": "^3.13.0",
     "mongoose": "~3.6.18",
-    "jayschema": "0.2.0"
+    "underscore": "~1.4.4",
+    "underscore.deep": "~0.0.2"
   },
   "devDependencies": {
     "mocha": "~1.8.2",
